@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🚀 KOL Manager 部署完整教學</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: #FFF8F6; color: #1A1A1A; line-height: 1.7; }
+  .wrap { max-width: 800px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  h1 { font-size: 28px; font-weight: 800; color: #E8523A; margin-bottom: 8px; }
+  h2 { font-size: 20px; font-weight: 800; color: #1A1A1A; margin: 40px 0 14px; padding-left: 12px; border-left: 4px solid #E8523A; }
+  h3 { font-size: 15px; font-weight: 700; color: #374151; margin: 20px 0 10px; }
+  p  { font-size: 14px; color: #374151; margin-bottom: 10px; }
+
+  .subtitle { font-size: 15px; color: #6B7280; margin-bottom: 32px; background: #FFF0EE; border-left: 4px solid #E8523A; padding: 12px 16px; border-radius: 0 10px 10px 0; }
+
+  .step-badge { display: inline-block; background: #E8523A; color: white; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 20px; margin-right: 8px; vertical-align: middle; }
+
+  ol, ul { padding-left: 22px; margin-bottom: 12px; }
+  li { font-size: 14px; color: #374151; margin-bottom: 6px; }
+  li strong { color: #1A1A1A; }
+
+  code { background: #F3F4F6; color: #E8523A; padding: 1px 6px; border-radius: 4px; font-size: 13px; font-family: 'Courier New', monospace; }
+
+  pre { background: #1E1E2E; color: #CDD6F4; padding: 20px; border-radius: 12px; overflow-x: auto; margin: 14px 0; font-size: 13px; line-height: 1.6; font-family: 'Courier New', monospace; }
+  pre .comment { color: #6C7086; }
+  pre .keyword { color: #CBA6F7; }
+  pre .string { color: #A6E3A1; }
+
+  .table-wrap { overflow-x: auto; margin: 14px 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #FFF0EE; color: #E8523A; font-weight: 700; padding: 10px 14px; text-align: left; border-bottom: 2px solid #FDDDD9; }
+  td { padding: 10px 14px; border-bottom: 1px solid #F3F4F6; color: #374151; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #FAFAFA; }
+
+  .note { background: #DBEAFE; border-left: 4px solid #3B82F6; padding: 12px 16px; border-radius: 0 10px 10px 0; margin: 12px 0; font-size: 13px; color: #1E40AF; }
+  .warn { background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 12px 16px; border-radius: 0 10px 10px 0; margin: 12px 0; font-size: 13px; color: #92400E; }
+  .success { background: #D1FAE5; border-left: 4px solid #22C55E; padding: 12px 16px; border-radius: 0 10px 10px 0; margin: 12px 0; font-size: 13px; color: #065F46; }
+
+  .card { background: white; border-radius: 14px; padding: 20px 24px; margin: 16px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.07); }
+
+  .step-num { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+  .step-circle { width: 40px; height: 40px; border-radius: 50%; background: #E8523A; color: white; font-size: 18px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .step-title { font-size: 18px; font-weight: 800; }
+
+  hr { border: none; border-top: 2px solid #F0E8E6; margin: 32px 0; }
+
+  .arch { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; padding: 20px; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.07); margin: 16px 0; }
+  .arch-box { background: #FFF0EE; border: 2px solid #FDDDD9; border-radius: 10px; padding: 10px 18px; font-size: 13px; font-weight: 700; color: #E8523A; text-align: center; }
+  .arch-arr { font-size: 20px; color: #9CA3AF; }
+
+  .env-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .env-key { background: #1E1E2E; color: #CBA6F7; padding: 8px 12px; border-radius: 8px; font-family: monospace; font-size: 13px; }
+  .env-val { background: #F3F4F6; color: #374151; padding: 8px 12px; border-radius: 8px; font-size: 13px; }
+
+  @media (max-width: 600px) {
+    .env-row { grid-template-columns: 1fr; }
+    .arch { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>🚀 KOL Manager 部署完整教學</h1>
+  <div class="subtitle">
+    完成後你將擁有一個 <strong>永久固定網址</strong> 的內部系統，同仁隨時可以連上查閱、新增網紅資料。<br>
+    預計時間：<strong>15–20 分鐘</strong>｜費用：<strong>完全免費</strong>
+  </div>
+
+  <!-- 架構圖 -->
+  <div class="arch">
+    <div class="arch-box">🌐 瀏覽器<br><small style="font-weight:400;color:#9CA3AF">同仁的電腦</small></div>
+    <div class="arch-arr">→</div>
+    <div class="arch-box">▲ Vercel<br><small style="font-weight:400;color:#9CA3AF">前端 React 介面</small></div>
+    <div class="arch-arr">→</div>
+    <div class="arch-box">🗄️ Supabase<br><small style="font-weight:400;color:#9CA3AF">PostgreSQL 資料庫</small></div>
+  </div>
+
+  <hr>
+
+  <!-- STEP 1 -->
+  <div class="card">
+    <div class="step-num">
+      <div class="step-circle">1</div>
+      <div class="step-title">建立 Supabase 資料庫</div>
+    </div>
+
+    <h3>1-1 建立帳號與專案</h3>
+    <ol>
+      <li>前往 <code>https://supabase.com</code> → 點 <strong>Start your project</strong></li>
+      <li>用 GitHub 帳號登入（免費，不需信用卡）</li>
+      <li>點 <strong>New project</strong></li>
+      <li>填入：
+        <ul>
+          <li>Project name：<code>kol-manager</code></li>
+          <li>Database Password：設一個強密碼（記住它）</li>
+          <li>Region：選 <strong>Northeast Asia (Tokyo)</strong>（台灣最近最快）</li>
+        </ul>
+      </li>
+      <li>點 <strong>Create new project</strong>，等待約 1–2 分鐘</li>
+    </ol>
+
+    <h3>1-2 建立資料表（執行 SQL）</h3>
+    <ol>
+      <li>左側選單點 <strong>SQL Editor</strong></li>
+      <li>點 <strong>+ New query</strong></li>
+      <li>複製以下 SQL，貼進去後點 <strong>Run ▶️</strong></li>
+    </ol>
+
+<pre><span class="comment">-- 建立網紅資料表</span>
+<span class="keyword">CREATE TABLE</span> influencers (
+  id              UUID         <span class="keyword">DEFAULT</span> gen_random_uuid() <span class="keyword">PRIMARY KEY</span>,
+  name            TEXT         <span class="keyword">NOT NULL</span>,
+  photo_url       TEXT,
+  platforms       TEXT[]       <span class="keyword">DEFAULT</span> <span class="string">'{}'</span>,
+  styles          TEXT[]       <span class="keyword">DEFAULT</span> <span class="string">'{}'</span>,
+  followers_ig    BIGINT       <span class="keyword">DEFAULT</span> 0,
+  followers_yt    BIGINT       <span class="keyword">DEFAULT</span> 0,
+  followers_tiktok BIGINT      <span class="keyword">DEFAULT</span> 0,
+  engagement_rate DECIMAL(5,2) <span class="keyword">DEFAULT</span> 0,
+  status          TEXT         <span class="keyword">DEFAULT</span> <span class="string">'洽談中'</span>,
+  contact         TEXT,
+  fee_ntd         INTEGER      <span class="keyword">DEFAULT</span> 0,
+  brand_value     TEXT,
+  note            TEXT,
+  created_at      TIMESTAMPTZ  <span class="keyword">DEFAULT</span> NOW(),
+  updated_at      TIMESTAMPTZ  <span class="keyword">DEFAULT</span> NOW()
+);
+
+<span class="comment">-- 啟用 Row Level Security</span>
+<span class="keyword">ALTER TABLE</span> influencers <span class="keyword">ENABLE ROW LEVEL SECURITY</span>;
+
+<span class="comment">-- 允許所有人公開讀取</span>
+<span class="keyword">CREATE POLICY</span> <span class="string">"public_read"</span> <span class="keyword">ON</span> influencers
+  <span class="keyword">FOR SELECT USING</span> (true);
+
+<span class="comment">-- 允許寫入（前端密碼已保護管理功能）</span>
+<span class="keyword">CREATE POLICY</span> <span class="string">"anon_write"</span> <span class="keyword">ON</span> influencers
+  <span class="keyword">FOR ALL USING</span> (true) <span class="keyword">WITH CHECK</span> (true);</pre>
+
+    <div class="success">✅ 看到 <strong>Success. No rows returned</strong> 代表執行成功</div>
+
+    <h3>1-3 取得 API 金鑰</h3>
+    <ol>
+      <li>左側選單點 <strong>Project Settings</strong>（齒輪圖示）→ <strong>API</strong></li>
+      <li>複製以下兩個值：</li>
+    </ol>
+    <div class="table-wrap">
+      <table>
+        <tr><th>名稱</th><th>在哪裡找</th><th>長什麼樣子</th></tr>
+        <tr><td><strong>Project URL</strong></td><td>Project Settings → API → Project URL</td><td><code>https://abcdefgh.supabase.co</code></td></tr>
+        <tr><td><strong>anon public key</strong></td><td>Project Settings → API → Project API Keys</td><td><code>eyJhbGciOiJIUz...</code>（很長）</td></tr>
+      </table>
+    </div>
+    <div class="warn">⚠️ 把這兩個值先貼到記事本，待會 Step 3 會用到</div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card">
+    <div class="step-num">
+      <div class="step-circle">2</div>
+      <div class="step-title">上傳程式碼到 GitHub</div>
+    </div>
+
+    <h3>2-1 建立 GitHub 帳號（已有可跳過）</h3>
+    <p>前往 <code>https://github.com</code> 免費註冊</p>
+
+    <h3>2-2 建立新倉庫</h3>
+    <ol>
+      <li>點右上角 <strong>+</strong> → <strong>New repository</strong></li>
+      <li>Repository name：<code>kol-manager</code></li>
+      <li>選 <strong>Private</strong>（私有，保護公司資料）</li>
+      <li>點 <strong>Create repository</strong></li>
+    </ol>
+
+    <h3>2-3 上傳專案檔案（最簡單方式）</h3>
+    <ol>
+      <li>在 GitHub 新建倉庫頁面，點 <strong>uploading an existing file</strong></li>
+      <li>把整個 <code>kol-manager</code> 資料夾的內容拖曳進去</li>
+    </ol>
+    <div class="warn">
+      ⚠️ 注意事項：
+      <ul style="margin-top:8px">
+        <li>要上傳資料夾「內部的所有檔案」，不是資料夾本身</li>
+        <li>需要包含：<code>package.json</code>、<code>vite.config.js</code>、<code>index.html</code>、<code>src/</code> 整個資料夾</li>
+        <li><strong>不要上傳 <code>.env</code> 檔</strong>（裡面有機密資訊）</li>
+      </ul>
+    </div>
+    <ol start="3">
+      <li>等上傳完成後，點 <strong>Commit changes</strong></li>
+    </ol>
+    <div class="success">✅ 看到所有檔案出現在 GitHub 頁面代表成功</div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card">
+    <div class="step-num">
+      <div class="step-circle">3</div>
+      <div class="step-title">部署到 Vercel（取得固定網址）</div>
+    </div>
+
+    <h3>3-1 建立 Vercel 帳號</h3>
+    <ol>
+      <li>前往 <code>https://vercel.com</code></li>
+      <li>點 <strong>Start Deploying</strong> → 選 <strong>Continue with GitHub</strong></li>
+      <li>授權 Vercel 存取你的 GitHub 帳號</li>
+    </ol>
+
+    <h3>3-2 匯入專案</h3>
+    <ol>
+      <li>點 <strong>Add New</strong> → <strong>Project</strong></li>
+      <li>找到 <code>kol-manager</code> 倉庫 → 點 <strong>Import</strong></li>
+      <li>Framework Preset 選 <strong>Vite</strong>（通常會自動偵測）</li>
+      <li>⛔ <strong>先不要點 Deploy</strong>，先設定環境變數</li>
+    </ol>
+
+    <h3>3-3 設定環境變數（🔑 最重要步驟）</h3>
+    <p>在 Deploy 頁面展開 <strong>Environment Variables</strong>，新增以下三個：</p>
+
+    <div class="table-wrap">
+      <table>
+        <tr><th>Name（名稱）</th><th>Value（值）</th></tr>
+        <tr>
+          <td><code>VITE_SUPABASE_URL</code></td>
+          <td>你在 Step 1-3 複製的 Project URL</td>
+        </tr>
+        <tr>
+          <td><code>VITE_SUPABASE_ANON_KEY</code></td>
+          <td>你在 Step 1-3 複製的 anon public key</td>
+        </tr>
+        <tr>
+          <td><code>VITE_ADMIN_PASSWORD</code></td>
+          <td>自訂管理員密碼（例：<code>Dayday@2024</code>）</td>
+        </tr>
+      </table>
+    </div>
+    <div class="note">💡 每填完一個要點 <strong>Add</strong> 確認，三個都加好才繼續</div>
+
+    <h3>3-4 正式部署</h3>
+    <ol>
+      <li>點 <strong>Deploy</strong> 按鈕</li>
+      <li>等待約 1–2 分鐘</li>
+      <li>看到 <strong>🎉 Congratulations!</strong> 代表成功</li>
+      <li>Vercel 會給你一個永久網址，例如：<code>https://kol-manager-xxx.vercel.app</code></li>
+    </ol>
+    <div class="success">✅ 這個網址就是你的固定系統入口，永不消失</div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="card">
+    <div class="step-num">
+      <div class="step-circle">4</div>
+      <div class="step-title">驗證系統運作</div>
+    </div>
+    <ol>
+      <li>打開你的 Vercel 網址</li>
+      <li>點右上角 <strong>⚙️ 管理後台</strong></li>
+      <li>輸入你在 Step 3-3 設定的管理員密碼</li>
+      <li>點 <strong>＋ 新增網紅</strong>，填入資料並儲存</li>
+      <li>回到 <strong>🖼️ 網紅名單</strong>，確認資料出現在 Gallery 中</li>
+    </ol>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="card">
+    <div class="step-num">
+      <div class="step-circle">5</div>
+      <div class="step-title">分享給同仁</div>
+    </div>
+    <p>直接把 Vercel 網址傳給同仁即可。</p>
+    <div class="table-wrap">
+      <table>
+        <tr><th>功能</th><th>是否需要密碼</th></tr>
+        <tr><td>🖼️ 瀏覽網紅名單 / 畫廊</td><td>❌ 不需要，任何人開網址就能看</td></tr>
+        <tr><td>⚙️ 新增 / 編輯 / 刪除資料</td><td>✅ 需要管理員密碼</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <hr>
+
+  <!-- FAQ -->
+  <h2>❓ 常見問題</h2>
+
+  <div class="card">
+    <h3>Q：網頁打開是空白的？</h3>
+    <p>→ 按 F12 開啟瀏覽器開發者工具 → Console 頁籤，看錯誤訊息。通常是環境變數沒設好。到 Vercel → 你的專案 → Settings → Environment Variables 確認三個變數都有填。</p>
+
+    <h3 style="margin-top:16px">Q：新增資料後重新整理就消失？</h3>
+    <p>→ Supabase 連線有問題。確認 <code>VITE_SUPABASE_URL</code> 和 <code>VITE_SUPABASE_ANON_KEY</code> 正確，且 Step 1-2 的 SQL 有成功執行。</p>
+
+    <h3 style="margin-top:16px">Q：管理員密碼忘記了？</h3>
+    <p>→ 到 Vercel → 你的專案 → Settings → Environment Variables，找到 <code>VITE_ADMIN_PASSWORD</code> 修改後重新部署。</p>
+
+    <h3 style="margin-top:16px">Q：想用自訂網域（例如 kol.dayday.com）？</h3>
+    <p>→ Vercel → Settings → Domains，輸入你的網域並照指示設定 DNS。</p>
+  </div>
+
+  <!-- Cost table -->
+  <h2>💰 費用說明（全部免費）</h2>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <tr><th>服務</th><th>免費方案限制</th><th>夠用嗎？</th></tr>
+        <tr><td><strong>Vercel</strong></td><td>100 GB 流量 / 月</td><td>✅ 完全足夠</td></tr>
+        <tr><td><strong>Supabase</strong></td><td>500 MB 資料庫 + 5 GB 流量 / 月</td><td>✅ 儲存幾千筆沒問題</td></tr>
+        <tr><td><strong>GitHub</strong></td><td>無限私有倉庫</td><td>✅</td></tr>
+      </table>
+    </div>
+    <div class="success" style="margin-top:14px">🎉 完全免費，不需要任何信用卡</div>
+  </div>
+
+</div>
+</body>
+</html>
