@@ -13,10 +13,15 @@ const STATUS_COLOR = {
 }
 
 const EMPTY = {
-  name: '', photo_url: '', platforms: [], styles: [],
+  name: '', ig_handle: '', photo_url: '', platforms: [], styles: [],
   followers_ig: '', followers_yt: '', followers_tiktok: '',
   engagement_rate: '', status: '洽談中',
   contact: '', fee_ntd: '', brand_value: '', note: '',
+}
+
+const igToPhotoUrl = (handle) => {
+  const clean = handle.replace(/^@/, '').trim()
+  return clean ? `https://unavatar.io/instagram/${clean}` : ''
 }
 
 export default function AdminPanel({ influencers, onRefresh, onBack, showToast }) {
@@ -41,6 +46,7 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
   const openEdit = (inf) => {
     setForm({
       name: inf.name || '',
+      ig_handle: inf.ig_handle || '',
       photo_url: inf.photo_url || '',
       platforms: inf.platforms || [],
       styles: inf.styles || [],
@@ -234,16 +240,42 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="例如：王大明" style={inputS} />
               </div>
 
-              {/* Photo */}
+              {/* IG Handle → auto photo */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>照片網址（貼入圖片連結）</label>
-                <input value={form.photo_url} onChange={e => set('photo_url', e.target.value)} placeholder="https://i.imgur.com/xxx.jpg" style={inputS} />
-                {form.photo_url && (
-                  <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <img src={form.photo_url} alt="預覽" style={{ width: '60px', height: '60px', borderRadius: '10px', objectFit: 'cover', border: '2px solid #F0E8E6' }} onError={e => e.target.style.opacity = '0.3'} />
-                    <span style={{ fontSize: '12px', color: '#9CA3AF' }}>圖片預覽</span>
+                <label style={labelS}>📸 IG 帳號（自動抓取大頭照）</label>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <div style={{ position: 'relative', flex: 1 }}>
+                    <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#9CA3AF', fontSize: '13px' }}>@</span>
+                    <input
+                      value={form.ig_handle}
+                      onChange={e => {
+                        const val = e.target.value.replace(/^@/, '')
+                        set('ig_handle', val)
+                        if (val) set('photo_url', igToPhotoUrl(val))
+                        else set('photo_url', '')
+                      }}
+                      placeholder="輸入 IG 帳號，例如：9.amez"
+                      style={{ ...inputS, paddingLeft: '28px' }}
+                    />
                   </div>
-                )}
+                  {form.photo_url && (
+                    <img
+                      src={form.photo_url}
+                      alt="大頭照預覽"
+                      style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #E8523A', flexShrink: 0 }}
+                      onError={e => { e.target.style.opacity = '0.3' }}
+                    />
+                  )}
+                </div>
+                <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '5px' }}>
+                  輸入帳號後自動抓取 IG 大頭照 ✨ 也可在下方手動填入其他圖片網址
+                </p>
+              </div>
+
+              {/* Photo URL (manual override) */}
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelS}>照片網址（選填，可手動覆蓋）</label>
+                <input value={form.photo_url} onChange={e => set('photo_url', e.target.value)} placeholder="自動填入，或手動貼入 https://..." style={{ ...inputS, background: form.ig_handle ? '#F9FAFB' : 'white' }} />
               </div>
 
               {/* Platforms */}
@@ -314,33 +346,4 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
 
               {/* Contact */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>聯絡方式</label>
-                <input value={form.contact} onChange={e => set('contact', e.target.value)} placeholder="Email 或 IG 帳號 @xxx" style={inputS} />
-              </div>
-
-              {/* Brand value */}
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>品牌幫助說明</label>
-                <textarea value={form.brand_value} onChange={e => set('brand_value', e.target.value)} placeholder="描述與 DAYDAY 品牌的契合點，受眾重疊度等..." rows={2} style={{ ...inputS, resize: 'vertical' }} />
-              </div>
-
-              {/* Note */}
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>備註</label>
-                <textarea value={form.note} onChange={e => set('note', e.target.value)} placeholder="合作腳本方向、過往合作成效、注意事項..." rows={2} style={{ ...inputS, resize: 'vertical' }} />
-              </div>
-            </div>
-
-            {/* Footer */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #F3F4F6' }}>
-              <button className="btn-secondary" onClick={() => setModal(false)}>取消</button>
-              <button className="btn-primary" onClick={handleSave} disabled={saving}>
-                {saving ? '⏳ 儲存中...' : '💾 儲存'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+                <lab
