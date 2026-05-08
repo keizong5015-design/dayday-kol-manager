@@ -92,14 +92,11 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
     setSaving(false); setModal(false); onRefresh()
   }
 
-  // Shared styles
   const inputS = { width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1.5px solid #E5E7EB', fontSize: '13px' }
   const labelS = { display: 'block', fontSize: '11px', fontWeight: 700, color: '#6B7280', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px' }}>
-
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontSize: '22px', fontWeight: 800 }}>⚙️ 管理後台</h1>
@@ -112,12 +109,11 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
             placeholder="🔍 快速搜尋..."
             style={{ padding: '8px 14px', borderRadius: '8px', border: '1.5px solid #E5E7EB', fontSize: '13px', width: '200px' }}
           />
-          <button className="btn-secondary" onClick={onBack}>← 返回名單</button>
-          <button className="btn-primary" onClick={openAdd}>＋ 新增網紅</button>
+          <button onClick={onBack} style={{ padding: '8px 16px', borderRadius: '8px', border: '1.5px solid #E5E7EB', background: 'white', fontSize: '13px', fontWeight: 600, cursor: 'pointer', color: '#6B7280' }}>← 返回名單</button>
+          <button onClick={openAdd} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#E8523A', color: 'white', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>＋ 新增網紅</button>
         </div>
       </div>
 
-      {/* Table */}
       <div style={{ background: 'white', borderRadius: '16px', boxShadow: '0 2px 10px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -141,7 +137,6 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
               const sc = STATUS_COLOR[inf.status] || STATUS_COLOR['洽談中']
               return (
                 <tr key={inf.id} style={{ borderBottom: '1px solid #F9FAFB', background: i % 2 === 0 ? 'white' : '#FEFEFE' }}>
-                  {/* Name + Photo */}
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <div style={{ width: '40px', height: '40px', borderRadius: '10px', overflow: 'hidden', background: '#F3F4F6', flexShrink: 0 }}>
@@ -153,7 +148,6 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                       <span style={{ fontWeight: 700, fontSize: '14px' }}>{inf.name}</span>
                     </div>
                   </td>
-                  {/* Platforms */}
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                       {(inf.platforms||[]).map(p => (
@@ -161,38 +155,27 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                       ))}
                     </div>
                   </td>
-                  {/* Followers / Engagement */}
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ fontSize: '13px', fontWeight: 600, color: '#1A1A1A' }}>{fmtNum(total)}</div>
                     <div style={{ fontSize: '11px', color: '#E8523A', fontWeight: 600 }}>
                       {inf.engagement_rate ? `互動率 ${inf.engagement_rate}%` : '-'}
                     </div>
                   </td>
-                  {/* Score */}
                   <td style={{ padding: '12px 16px' }}>
                     <span style={{ fontWeight: 800, fontSize: '16px', color: score>=80?'#22C55E':score>=60?'#F59E0B':score>=40?'#3B82F6':'#9CA3AF' }}>{score}</span>
                   </td>
-                  {/* Status */}
                   <td style={{ padding: '12px 16px' }}>
                     <span style={{ background: sc.bg, color: sc.color, fontSize: '11px', fontWeight: 700, padding: '3px 9px', borderRadius: '20px' }}>
                       {inf.status || '洽談中'}
                     </span>
                   </td>
-                  {/* Fee */}
                   <td style={{ padding: '12px 16px', fontSize: '13px', color: inf.fee_ntd ? '#065F46' : '#9CA3AF', fontWeight: inf.fee_ntd ? 600 : 400 }}>
                     {inf.fee_ntd ? `NT$${Number(inf.fee_ntd).toLocaleString()}` : '-'}
                   </td>
-                  {/* Actions */}
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <button
-                        onClick={() => openEdit(inf)}
-                        style={{ padding: '5px 12px', borderRadius: '6px', border: '1.5px solid #E5E7EB', background: 'white', fontSize: '12px', color: '#374151', cursor: 'pointer' }}
-                      >✏️ 編輯</button>
-                      <button
-                        onClick={() => handleDelete(inf.id, inf.name)}
-                        style={{ padding: '5px 12px', borderRadius: '6px', border: '1.5px solid #FEE2E2', background: '#FFF5F5', fontSize: '12px', color: '#E8523A', cursor: 'pointer' }}
-                      >🗑️ 刪除</button>
+                      <button onClick={() => openEdit(inf)} style={{ padding: '5px 12px', borderRadius: '6px', border: '1.5px solid #E5E7EB', background: 'white', fontSize: '12px', color: '#374151', cursor: 'pointer' }}>✏️ 編輯</button>
+                      <button onClick={() => handleDelete(inf.id, inf.name)} style={{ padding: '5px 12px', borderRadius: '6px', border: '1.5px solid #FEE2E2', background: '#FFF5F5', fontSize: '12px', color: '#E8523A', cursor: 'pointer' }}>🗑️ 刪除</button>
                     </div>
                   </td>
                 </tr>
@@ -202,7 +185,6 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
         </table>
       </div>
 
-      {/* ── Modal ── */}
       {modal && (
         <div
           onClick={e => e.target === e.currentTarget && setModal(false)}
@@ -219,7 +201,6 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
             maxHeight: '92vh', overflow: 'auto',
             padding: '28px',
           }}>
-            {/* Modal Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
               <h2 style={{ fontSize: '18px', fontWeight: 800 }}>
                 {editId ? '✏️ 編輯網紅資料' : '➕ 新增網紅'}
@@ -234,13 +215,11 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              {/* Name */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelS}>網紅名稱 *</label>
                 <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="例如：王大明" style={inputS} />
               </div>
 
-              {/* IG Handle → auto photo */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelS}>📸 IG 帳號（自動抓取大頭照）</label>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -268,17 +247,15 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                   )}
                 </div>
                 <p style={{ fontSize: '11px', color: '#9CA3AF', marginTop: '5px' }}>
-                  輸入帳號後自動抓取 IG 大頭照 ✨ 也可在下方手動填入其他圖片網址
+                  輸入帳號後自動抓取 IG 大頭照 ✨
                 </p>
               </div>
 
-              {/* Photo URL (manual override) */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>照片網址（選填，可手動覆蓋）</label>
-                <input value={form.photo_url} onChange={e => set('photo_url', e.target.value)} placeholder="自動填入，或手動貼入 https://..." style={{ ...inputS, background: form.ig_handle ? '#F9FAFB' : 'white' }} />
+                <label style={labelS}>照片網址（選填）</label>
+                <input value={form.photo_url} onChange={e => set('photo_url', e.target.value)} placeholder="自動填入，或手動貼入 https://..." style={inputS} />
               </div>
 
-              {/* Platforms */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelS}>平台（可多選）</label>
                 <div style={{ display: 'flex', gap: '16px' }}>
@@ -291,7 +268,6 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 </div>
               </div>
 
-              {/* Followers */}
               <div>
                 <label style={labelS}>📸 IG 粉絲數</label>
                 <input type="number" value={form.followers_ig} onChange={e => set('followers_ig', e.target.value)} placeholder="例：150000" style={inputS} />
@@ -309,7 +285,6 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 <input type="number" step="0.1" min="0" max="100" value={form.engagement_rate} onChange={e => set('engagement_rate', e.target.value)} placeholder="例：4.5" style={inputS} />
               </div>
 
-              {/* Styles */}
               <div style={{ gridColumn: '1 / -1' }}>
                 <label style={labelS}>風格標籤（可多選）</label>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
@@ -322,7 +297,7 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                         border: active ? '1.5px solid #FDDDD9' : '1.5px solid #E5E7EB',
                         borderRadius: '20px', padding: '4px 12px',
                         fontSize: '12px', color: active ? '#E8523A' : '#6B7280',
-                        fontWeight: active ? 700 : 400, transition: 'all 0.15s',
+                        fontWeight: active ? 700 : 400,
                       }}>
                         <input type="checkbox" checked={active} onChange={() => toggleArr('styles', s)} style={{ display: 'none' }} />
                         {s}
@@ -332,7 +307,6 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 </div>
               </div>
 
-              {/* Status & Fee */}
               <div>
                 <label style={labelS}>合作狀態</label>
                 <select value={form.status} onChange={e => set('status', e.target.value)} style={{ ...inputS, background: 'white', cursor: 'pointer' }}>
@@ -344,6 +318,31 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 <input type="number" value={form.fee_ntd} onChange={e => set('fee_ntd', e.target.value)} placeholder="例：15000" style={inputS} />
               </div>
 
-              {/* Contact */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <lab
+                <label style={labelS}>聯絡方式</label>
+                <input value={form.contact} onChange={e => set('contact', e.target.value)} placeholder="Email 或 IG 帳號 @xxx" style={inputS} />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelS}>品牌幫助說明</label>
+                <textarea value={form.brand_value} onChange={e => set('brand_value', e.target.value)} placeholder="描述與 DAYDAY 品牌的契合點..." rows={2} style={{ ...inputS, resize: 'vertical' }} />
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <label style={labelS}>備註</label>
+                <textarea value={form.note} onChange={e => set('note', e.target.value)} placeholder="合作腳本方向、過往合作成效..." rows={2} style={{ ...inputS, resize: 'vertical' }} />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #F3F4F6' }}>
+              <button onClick={() => setModal(false)} style={{ padding: '8px 16px', borderRadius: '8px', border: '1.5px solid #E5E7EB', background: 'white', fontSize: '13px', fontWeight: 600, cursor: 'pointer', color: '#6B7280' }}>取消</button>
+              <button onClick={handleSave} disabled={saving} style={{ padding: '8px 16px', borderRadius: '8px', border: 'none', background: '#E8523A', color: 'white', fontSize: '13px', fontWeight: 700, cursor: 'pointer' }}>
+                {saving ? '⏳ 儲存中...' : '💾 儲存'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
