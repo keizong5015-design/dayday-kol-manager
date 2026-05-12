@@ -33,7 +33,7 @@ const calcFit = (form) => {
   // 風格契合度（最多 45 分）— 美妝/穿搭/生活/時尚 最符合護膚品牌
   const STYLE_W = {
     '美妝': 15, '穿搭': 12, '生活': 10, '時尚': 10,
-    '健身': 8,  '親子': 7,  '旅遊': 6,  '美食': 5,
+    '健身': 8,  '親子': 7,  '旅遊': 6,  '羦食': 5,
     '寵物': 5,  '藝術': 5,  '3C': 3,
   }
   score += Math.min((form.styles || []).reduce((s, st) => s + (STYLE_W[st] || 0), 0), 45)
@@ -100,10 +100,10 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
     setEditId(inf.id); setErr(''); setModal(true)
   }
 
-  // ── 貼上圖片 → 上傳到 Supabase Storage ─────────────────
+  // ── 貼上圖片 → 直接轉 base64 存入資料庫（不需要 Storage）─
   useEffect(() => {
     if (!modal) return
-    const onPaste = async (e) => {
+    const onPaste = (e) => {
       const items = e.clipboardData?.items
       if (!items) return
       for (const item of Array.from(items)) {
@@ -112,23 +112,17 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
         if (!file) continue
 
         setPasteUploading(true)
-        const ext  = (file.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg')
-        const path = `kol_${Date.now()}.${ext}`
-
-        const { error: upErr } = await supabase.storage
-          .from('kol-photos')
-          .upload(path, file, { upsert: true, contentType: file.type })
-
-        if (upErr) {
-          setErr('圖片上傳失敗：' + upErr.message + '（請至 Supabase Storage 建立名為 kol-photos 的 Public Bucket）')
+        const reader = new FileReader()
+        reader.onload = (ev) => {
+          setForm(p => ({ ...p, photo_url: ev.target.result }))
           setPasteUploading(false)
-          return
+          showToast('圖片貼上成功！')
         }
-
-        const { data: { publicUrl } } = supabase.storage.from('kol-photos').getPublicUrl(path)
-        setForm(p => ({ ...p, photo_url: publicUrl }))
-        setPasteUploading(false)
-        showToast('圖片上傳成功！')
+        reader.onerror = () => {
+          setErr('圖片讀取失敗，請再試一次')
+          setPasteUploading(false)
+        }
+        reader.readAsDataURL(file)
         break
       }
     }
@@ -377,20 +371,20 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 </div>
               </div>
 
-              {/* 圖片網址（手動備用） */}
+              {/*圖片封址（把丕傦断） */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>圖片網址（手動輸入或覆蓋）</label>
+                <label style={labelS}>圖片封址（把丕輸入或覆蓋）</label>
                 <input
                   value={form.photo_url}
                   onChange={e => set('photo_url', e.target.value)}
-                  placeholder="貼上後自動填入，或手動輸入 https://..."
+                  placeholder="貼上後自動填入，或把丕輸入 https://..."
                   style={{ ...inputS, color: '#6B7280' }}
                 />
               </div>
 
               {/* 平台 */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>平台（可多選）</label>
+                <label style={labelS}>噳台（可多遴）</label>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   {PLATFORMS.map(p => (
                     <label key={p} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
@@ -401,14 +395,14 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 </div>
               </div>
 
-              {/* 粉絲數 */}
+              {/* IG 粉絲數 */}
               <div>
                 <label style={labelS}>📸 IG 粉絲數</label>
                 <input type="number" value={form.followers_ig} onChange={e => set('followers_ig', e.target.value)} placeholder="例：150000" style={inputS} />
               </div>
               <div>
-                <label style={labelS}>▶️ YouTube 訂閱數</label>
-                <input type="number" value={form.followers_yt} onChange={e => set('followers_yt', e.target.value)} placeholder="例：80000" style={inputS} />
+                <label style={labelS}>▶️ YouTube 訂山數</label>
+              <input type="number" value={form.followers_yt} onChange={e => set('followers_yt', e.target.value)} placeholder="例：80000" style={inputS} />
               </div>
               <div>
                 <label style={labelS}>🎵 TikTok 粉絲數</label>
