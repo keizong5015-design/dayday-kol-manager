@@ -41,8 +41,18 @@ const scoreColor = (s) => {
   return '#9CA3AF'
 }
 
-const igUrl = (handle) =>
-  handle ? `https://www.instagram.com/${handle.replace(/^@/, '')}` : null
+const extractIgHandle = (handle) => {
+  if (!handle) return ''
+  // If it's a full URL, extract the username part
+  const urlMatch = handle.match(/instagram\.com\/([^/?#\s]+)/)
+  if (urlMatch) return urlMatch[1]
+  // Otherwise strip @ and trim
+  return handle.replace(/^@/, '').trim()
+}
+const igUrl = (handle) => {
+  const h = extractIgHandle(handle)
+  return h ? `https://www.instagram.com/${h}` : null
+}
 
 export default function KolCard({ influencer: inf }) {
   const [showDetail, setShowDetail]       = useState(false)
@@ -55,6 +65,7 @@ export default function KolCard({ influencer: inf }) {
   const platforms = inf.platforms || []
   const styles    = inf.styles    || []
   const igLink    = igUrl(inf.ig_handle)
+  const igDisplay = extractIgHandle(inf.ig_handle)
 
   return (
     <>
@@ -126,7 +137,7 @@ export default function KolCard({ influencer: inf }) {
                 border: '1px solid #FECDD3',
               }}
             >
-              📸 @{inf.ig_handle} ↗
+              📸 @{igDisplay} ↗
             </a>
           )}
 
@@ -241,7 +252,7 @@ export default function KolCard({ influencer: inf }) {
                     textDecoration: 'none', marginBottom: '16px',
                   }}
                 >
-                  📸 @{inf.ig_handle} — 開啟 Instagram ↗
+                  📸 @{igDisplay} — 開啟 Instagram ↗
                 </a>
               )}
 
