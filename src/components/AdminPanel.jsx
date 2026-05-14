@@ -141,8 +141,16 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
   const handleSave = async () => {
     if (!form.name.trim()) { setErr('請填寫網紅名稱'); return }
     setSaving(true); setErr('')
+    // 正規化 ig_handle：若貼入完整 URL 自動萃取帳號名
+    const rawHandle = form.ig_handle || ''
+    const urlMatch  = rawHandle.match(/instagram\.com\/([^/?#\s]+)/)
+    const cleanHandle = urlMatch
+      ? '@' + urlMatch[1]
+      : rawHandle.replace(/^@/, '').trim() ? '@' + rawHandle.replace(/^@/, '').trim() : ''
+
     const payload = {
       ...form,
+      ig_handle:       cleanHandle,
       followers_ig:    Number(form.followers_ig)          || 0,
       followers_yt:    Number(form.followers_yt)          || 0,
       followers_tiktok:Number(form.followers_tiktok)      || 0,
