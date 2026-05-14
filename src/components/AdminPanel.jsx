@@ -67,6 +67,67 @@ const fitInfo = (fit) => {
   return              { label: '待評估',        color: '#9CA3AF', bg: '#F9FAFB' }
 }
 
+const generateAnalysis = (form) => {
+  const fit     = calcFit(form)
+  const ig      = Number(form.followers_ig) || 0
+  const er      = parseFloat(form.engagement_rate) || 0
+  const styles  = form.styles || []
+  const platforms = form.platforms || []
+  const lines   = []
+
+  if (ig >= 10000 && ig < 50000)
+    lines.push('📊 規模：奈米網紅（1萬-5萬），互動率高、受眾黏著度強，最適合 DAYDAY 真實口碑推廣。')
+  else if (ig >= 50000 && ig < 200000)
+    lines.push('📊 規模：微型網紅（5萬-20萬），精準受眾，品牌契合度高，CP值佳。')
+  else if (ig >= 200000 && ig < 500000)
+    lines.push('📊 規模：中型網紅（20萬-50萬），曝光量大，需確認受眾是否與 DAYDAY 25-38歲都市女性重疊。')
+  else if (ig >= 500000)
+    lines.push('📊 規模：大型網紅（50萬+），曝光強但互動率可能偏低，需仔細評估 ROI。')
+  else
+    lines.push('📊 規模：粉絲數未填或偏少，建議先確認帳號是否在成長期。')
+
+  if (er >= 5)
+    lines.push(`💬 互動率 ${er}%：非常優異（業界平均約 1-3%），受眾高度活躍，推文轉換力強。`)
+  else if (er >= 3)
+    lines.push(`💬 互動率 ${er}%：良好，符合品牌推廣需求，受眾真實度高。`)
+  else if (er >= 1)
+    lines.push(`💬 互動率 ${er}%：中等，建議多觀察留言互動質量，確認是否為真實粉絲。`)
+  else if (er > 0)
+    lines.push(`💬 互動率 ${er}%：偏低，需了解粉絲組成，避免花費預算在無效曝光。`)
+
+  const goodStyles = styles.filter(s => ['美妝','穿搭','生活','時尚'].includes(s))
+  const otherStyles = styles.filter(s => !['美妝','穿搭','生活','時尚'].includes(s))
+  if (goodStyles.length > 0)
+    lines.push(`✅ 風格契合：${goodStyles.join('、')} 高度符合 DAYDAY「純淨×有感×生活感」DNA。`)
+  if (otherStyles.length > 0)
+    lines.push(`🔍 其他風格：${otherStyles.join('、')} 與護膚品牌的關聯度較低，合作時需設計適合的腳本。`)
+  if (styles.length === 0)
+    lines.push('⚠️ 風格標籤未填，請補充以提升分析準確度。')
+
+  if (platforms.includes('IG'))
+    lines.push('📸 IG 視覺屬性最適合護膚品牌，適合開箱、GRWM、成分教育等內容形式。')
+  if (platforms.includes('TikTok'))
+    lines.push('🎵 TikTok 適合短影音病毒式傳播，可主打「快速見效」或「成分揭密」角度。')
+
+  if (ig > 0) {
+    const roi = Math.round(ig * 0.3 * 0.1 * 1919)
+    lines.push(`💰 預估 ROI：NT${roi.toLocaleString()}（粉絲 × 30%觸及 × 10%轉換 × AOV NT$1,919）`)
+  }
+
+  if (fit >= 85)
+    lines.push('👉 建議：強力推薦優先接洽，具備長期合作潛力，可考慮獨家或首波合作。')
+  else if (fit >= 70)
+    lines.push('👉 建議：優先接洽，適合作為核心 KOL 合作夥伴，建議從 1-2 篇試合作開始。')
+  else if (fit >= 55)
+    lines.push('👉 建議：可試合作，先以 1 篇測試受眾反應，再評估後續投入。')
+  else if (fit >= 40)
+    lines.push('👉 建議：謹慎評估，受眾重疊度有限，合作前需確認腳本方向。')
+  else
+    lines.push('👉 建議：目前資料不足或契合度偏低，建議補充更多資訊後再評估。')
+
+  return lines.join('\n')
+}
+
 // ─────────────────────────────────────────────────────────
 export default function AdminPanel({ influencers, onRefresh, onBack, showToast }) {
   const [modal, setModal]               = useState(false)
@@ -489,8 +550,22 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
 
               {/* 品牌說明 */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>品牌幫助說明</label>
-                <textarea value={form.brand_value} onChange={e => set('brand_value', e.target.value)} placeholder="描述與 DAYDAY 品牌的契合點、受眾重疊度..." rows={2} style={{ ...inputS, resize: 'vertical' }} />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
+                  <label style={{ ...labelS, marginBottom: 0 }}>品牌幫助說明</label>
+                  <button
+                    type="button"
+                    onClick={() => set('brand_value', generateAnalysis(form))}
+                    style={{
+                      background: 'linear-gradient(135deg, #E8523A, #F59E0B)',
+                      color: 'white', border: 'none', borderRadius: '8px',
+                      padding: '4px 12px', fontSize: '12px', fontWeight: 700,
+                      cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px',
+                    }}
+                  >
+                    🎯 自動分析
+                  </button>
+                </div>
+                <textarea value={form.brand_value} onChange={e => set('brand_value', e.target.value)} placeholder="點「🎯 自動分析」自動生成，或手動描述與 DAYDAY 品牌的契合點..." rows={5} style={{ ...inputS, resize: 'vertical' }} />
               </div>
 
               {/* 備註 */}
