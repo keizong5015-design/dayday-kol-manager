@@ -15,10 +15,12 @@ const avatarBg      = (name) => AVATAR_COLORS[((name || '?').charCodeAt(0)) % AV
 const avatarInitial = (name) => (name || '?').charAt(0).toUpperCase()
 
 const STATUS_STYLE = {
-  'æ´½è«ä¸­':   { bg: '#FEF3C7', color: '#92400E' },
-  'å·²ç¢ºèª':   { bg: '#DBEAFE', color: '#1E40AF' },
-  'åä½å®æ': { bg: '#D1FAE5', color: '#065F46' },
-  'æ«ç·©':     { bg: '#F3F4F6', color: '#6B7280' },
+  '洽談中':   { bg: '#FEF3C7', color: '#92400E' },
+  '已核准':   { bg: '#D1FAE5', color: '#065F46' },
+  '已確認':   { bg: '#DBEAFE', color: '#1E40AF' },
+  '合作完成': { bg: '#BBF7D0', color: '#14532D' },
+  '暫緩':     { bg: '#F3F4F6', color: '#6B7280' },
+  '已取消':   { bg: '#FEE2E2', color: '#991B1B' },
 }
 
 export const fmtNum = (n) => {
@@ -71,7 +73,7 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
   }
 
   const score     = calcScore(inf)
-  const ss        = STATUS_STYLE[inf.status] || STATUS_STYLE['æ´½è«ä¸­']
+  const ss        = STATUS_STYLE[inf.status] || STATUS_STYLE['洽談中']
   const total     = (inf.followers_ig || 0) + (inf.followers_yt || 0) + (inf.followers_tiktok || 0)
   const platforms = inf.platforms || []
   const styles    = inf.styles    || []
@@ -80,7 +82,7 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
 
   return (
     <>
-      {/* ââ Card ââ */}
+      {/* ── Card ── */}
       <div
         className="kol-card"
         onClick={() => setShowDetail(true)}
@@ -110,11 +112,11 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
           )}
           {/* Status badge */}
           <span style={{ position: 'absolute', top: 10, right: 10, background: ss.bg, color: ss.color, fontSize: '11px', fontWeight: 700, padding: '3px 9px', borderRadius: '20px' }}>
-            {inf.status || 'æ´½è«ä¸­'}
+            {inf.status || '洽談中'}
           </span>
           {/* Score badge */}
           <span style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(0,0,0,0.65)', color: 'white', fontSize: '12px', fontWeight: 700, padding: '3px 9px', borderRadius: '20px', backdropFilter: 'blur(4px)' }}>
-            â {score}
+            ★ {score}
           </span>
           {/* Platform badges */}
           {platforms.length > 0 && (
@@ -134,7 +136,7 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
             </h3>
           </div>
 
-          {/* IG è·³è½é£çµ */}
+          {/* IG 跳轉連結 */}
           {igLink && (
             <a
               href={igLink}
@@ -148,7 +150,7 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
                 border: '1px solid #FECDD3',
               }}
             >
-              ð¸ @{igDisplay} â
+              📸 @{igDisplay} ↗
             </a>
           )}
 
@@ -186,15 +188,15 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
           {/* Metrics */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', padding: '8px 0', margin: '10px 0', borderTop: '1px solid #F3F4F6', borderBottom: '1px solid #F3F4F6', textAlign: 'center' }}>
             <div>
-              <div style={{ fontSize: '10px', color: '#9CA3AF', marginBottom: '2px' }}>äºåç</div>
+              <div style={{ fontSize: '10px', color: '#9CA3AF', marginBottom: '2px' }}>互動率</div>
               <div style={{ fontSize: '14px', fontWeight: 800, color: '#E8523A' }}>{inf.engagement_rate ? `${inf.engagement_rate}%` : '-'}</div>
             </div>
             <div>
-              <div style={{ fontSize: '10px', color: '#9CA3AF', marginBottom: '2px' }}>ç¸½ç²çµ²</div>
+              <div style={{ fontSize: '10px', color: '#9CA3AF', marginBottom: '2px' }}>總粉絲</div>
               <div style={{ fontSize: '14px', fontWeight: 800, color: '#1A1A1A' }}>{fmtNum(total)}</div>
             </div>
             <div>
-              <div style={{ fontSize: '10px', color: '#9CA3AF', marginBottom: '2px' }}>æ¨è¦å</div>
+              <div style={{ fontSize: '10px', color: '#9CA3AF', marginBottom: '2px' }}>推薦分</div>
               <div style={{ fontSize: '14px', fontWeight: 800, color: scoreColor(score) }}>{score}</div>
             </div>
           </div>
@@ -210,10 +212,48 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
               )}
             </div>
           )}
+
+          {/* ── 核准 / 取消 快速操作 ── */}
+          {(inf.status === '洽談中' || inf.status === '已核准') && (
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ display: 'flex', gap: '6px', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid #F3F4F6' }}
+            >
+              {inf.status !== '已核准' && (
+                <button
+                  onClick={e => handleStatusUpdate(e, '已核准')}
+                  disabled={statusUpdating}
+                  style={{
+                    flex: 1, padding: '7px 0', borderRadius: '8px',
+                    background: '#D1FAE5', color: '#065F46',
+                    border: '1.5px solid #6EE7B7',
+                    fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                    opacity: statusUpdating ? 0.6 : 1,
+                  }}
+                >✅ 核准</button>
+              )}
+              {inf.status === '已核准' && (
+                <div style={{ flex: 1, padding: '7px 0', borderRadius: '8px', background: '#D1FAE5', color: '#065F46', fontSize: '12px', fontWeight: 700, textAlign: 'center', border: '1.5px solid #6EE7B7' }}>
+                  ✅ 已核准
+                </div>
+              )}
+              <button
+                onClick={e => handleStatusUpdate(e, '已取消')}
+                disabled={statusUpdating}
+                style={{
+                  flex: 1, padding: '7px 0', borderRadius: '8px',
+                  background: '#FEE2E2', color: '#991B1B',
+                  border: '1.5px solid #FECACA',
+                  fontSize: '12px', fontWeight: 700, cursor: 'pointer',
+                  opacity: statusUpdating ? 0.6 : 1,
+                }}
+              >❌ 取消</button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ââ Detail Modal ââ */}
+      {/* ── Detail Modal ── */}
       {showDetail && (
         <div
           onClick={() => setShowDetail(false)}
@@ -232,7 +272,7 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
                   {avatarInitial(inf.name)}
                 </div>
               )}
-              <button onClick={() => setShowDetail(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontSize: '16px', cursor: 'pointer' }}>â</button>
+              <button onClick={() => setShowDetail(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.5)', color: 'white', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontSize: '16px', cursor: 'pointer' }}>✕</button>
             </div>
 
             {/* Detail content */}
@@ -241,16 +281,16 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
                 <div>
                   <h2 style={{ fontSize: '20px', fontWeight: 800, marginBottom: '6px' }}>{inf.name}</h2>
                   <span style={{ background: ss.bg, color: ss.color, fontSize: '12px', fontWeight: 700, padding: '3px 10px', borderRadius: '20px' }}>
-                    {inf.status || 'æ´½è«ä¸­'}
+                    {inf.status || '洽談中'}
                   </span>
                 </div>
                 <div style={{ textAlign: 'center', background: '#FFF0EE', borderRadius: '12px', padding: '10px 16px' }}>
-                  <div style={{ fontSize: '10px', color: '#9CA3AF' }}>æ¨è¦ææ¸</div>
+                  <div style={{ fontSize: '10px', color: '#9CA3AF' }}>推薦指數</div>
                   <div style={{ fontSize: '24px', fontWeight: 800, color: scoreColor(score) }}>{score}</div>
                 </div>
               </div>
 
-              {/* IG ç´è·³é£çµ */}
+              {/* IG 直跳連結 */}
               {igLink && (
                 <a
                   href={igLink}
@@ -263,7 +303,7 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
                     textDecoration: 'none', marginBottom: '16px',
                   }}
                 >
-                  ð¸ @{igDisplay} â éå Instagram â
+                  📸 @{igDisplay} � 開啟 Instagram ↗
                 </a>
               )}
 
@@ -279,12 +319,12 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
               {/* Stats grid */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '10px', marginBottom: '16px' }}>
                 {[
-                  { label: 'IG ç²çµ²',  val: fmtNum(inf.followers_ig),  color: '#E1306C' },
+                  { label: 'IG 粉絲',  val: fmtNum(inf.followers_ig),  color: '#E1306C' },
                   { label: 'YouTube',  val: fmtNum(inf.followers_yt),  color: '#FF0000' },
                   { label: 'TikTok',   val: fmtNum(inf.followers_tiktok), color: '#333' },
-                  { label: 'äºåç',   val: inf.engagement_rate ? `${inf.engagement_rate}%` : '-', color: '#E8523A' },
-                  { label: 'ç¸½ç²çµ²',   val: fmtNum(total),              color: '#1A1A1A' },
-                  { label: 'å ±å¹/ç¯',  val: inf.fee_ntd ? `NT$${Number(inf.fee_ntd).toLocaleString()}` : '-', color: '#065F46' },
+                  { label: '互動率',   val: inf.engagement_rate ? `${inf.engagement_rate}%` : '-', color: '#E8523A' },
+                  { label: '總粉絲',   val: fmtNum(total),              color: '#1A1A1A' },
+                  { label: '報價/篇',  val: inf.fee_ntd ? `NT$${Number(inf.fee_ntd).toLocaleString()}` : '-', color: '#065F46' },
                 ].map(({ label, val, color }) => (
                   <div key={label} style={{ background: '#FFF8F6', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
                     <div style={{ fontSize: '10px', color: '#9CA3AF', marginBottom: '3px' }}>{label}</div>
@@ -296,7 +336,7 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
               {/* Styles */}
               {styles.length > 0 && (
                 <div style={{ marginBottom: '14px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', marginBottom: '6px' }}>é¢¨æ ¼</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', marginBottom: '6px' }}>風格</div>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                     {styles.map(s => (
                       <span key={s} style={{ background: '#FFF0EE', color: '#E8523A', fontSize: '12px', padding: '3px 10px', borderRadius: '20px', border: '1px solid #FDDDD9' }}>{s}</span>
@@ -307,21 +347,21 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
 
               {inf.contact && (
                 <div style={{ marginBottom: '14px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', marginBottom: '4px' }}>è¯çµ¡æ¹å¼</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', marginBottom: '4px' }}>聯絡方式</div>
                   <div style={{ fontSize: '13px', color: '#374151' }}>{inf.contact}</div>
                 </div>
               )}
 
               {inf.brand_value && (
                 <div style={{ marginBottom: '14px' }}>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', marginBottom: '4px' }}>åçå¹«å©èªªæ</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', marginBottom: '4px' }}>品牌幫助說明</div>
                   <div style={{ fontSize: '13px', color: '#374151', lineHeight: 1.6 }}>{inf.brand_value}</div>
                 </div>
               )}
 
               {inf.note && (
                 <div>
-                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', marginBottom: '4px' }}>åè¨»</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: '#9CA3AF', marginBottom: '4px' }}>備註</div>
                   <div style={{ fontSize: '13px', color: '#374151', lineHeight: 1.6, background: '#F9FAFB', padding: '10px', borderRadius: '8px' }}>{inf.note}</div>
                 </div>
               )}
