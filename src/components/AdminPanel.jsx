@@ -4,9 +4,10 @@ import { fmtNum, calcScore } from './KolCard'
 
 const PLATFORMS = ['IG', 'TikTok', 'YouTube']
 const ALL_STYLES = ['穿搭', '美妝', '生活', '美食', '旅遊', '健身', '寵物', '3C', '親子', '藝術', '時尚']
-const STATUSES = ['洽談中', '已確認', '合作完成', '暫緩']
+const STATUSES = ['洽談中', '已核准', '已確認', '合作完成', '暫緩']
 const STATUS_COLOR = {
   '洽談中':   { bg: '#FEF3C7', color: '#92400E' },
+  '已核准':   { bg: '#E0F2FE', color: '#0369A1' },
   '已確認':   { bg: '#DBEAFE', color: '#1E40AF' },
   '合作完成': { bg: '#D1FAE5', color: '#065F46' },
   '暫緩':     { bg: '#F3F4F6', color: '#6B7280' },
@@ -128,6 +129,48 @@ const generateAnalysis = (form) => {
   return lines.join('\n')
 }
 
+
+const generateEmail = (inf) => {
+  const handle = (inf.ig_handle || '').replace(/^@/, '')
+  const name   = inf.name || '您好'
+  return `主旨：DAYDAY 純淨保養 × ${name} 合作邀請
+
+Hi ${name}，
+
+我是 DAYDAY 品牌的合作負責人。在 Instagram 上看到您的帳號 @${handle}，您的內容風格非常符合我們品牌的調性——真實、有感、注重成分透明度，我們認為這是非常難得的特質。
+
+DAYDAY 是一個專注於純淨保養的台灣品牌，主打讓肌膚真正有感受的成分配方，目前正在尋找與品牌 DNA 契合的創作者進行長期合作。
+
+合作方式彈性，可以是產品試用開箱、GRWM 或成分教育類內容，我們也歡迎您提出自己的創作想法。
+
+如果您有興趣，歡迎回覆此信或私訊 IG，我們可以進一步討論細節！期待與您合作 🌿
+
+DAYDAY 品牌合作團隊`
+}
+
+const parseCSV = (text) => {
+  const lines = text.trim().split('\n').filter(l => l.trim())
+  if (lines.length < 2) return []
+  // Skip header row
+  return lines.slice(1).map(line => {
+    const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''))
+    const [name, ig_handle, followers_ig, engagement_rate, stylesRaw, note] = cols
+    const styles = stylesRaw ? stylesRaw.split('|').map(s => s.trim()).filter(Boolean) : []
+    return {
+      name: name || '',
+      ig_handle: ig_handle ? ('@' + ig_handle.replace(/^@/, '')) : '',
+      photo_url: ig_handle ? `https://unavatar.io/instagram/${ig_handle.replace(/^@/, '')}` : '',
+      platforms: ['IG'],
+      styles,
+      followers_ig: Number(followers_ig) || 0,
+      followers_yt: 0, followers_tiktok: 0,
+      engagement_rate: parseFloat(engagement_rate) || 0,
+      status: '洽談中',
+      contact: '', fee_ntd: 0, brand_value: '', note: note || '',
+    }
+  }).filter(r => r.name)
+}
+
 // ─────────────────────────────────────────────────────────
 export default function AdminPanel({ influencers, onRefresh, onBack, showToast }) {
   const [modal, setModal]               = useState(false)
@@ -137,6 +180,13 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
   const [err, setErr]                   = useState('')
   const [search, setSearch]             = useState('')
   const [pasteUploading, setPasteUploading] = useState(false)
+  const [emailModal, setEmailModal] = useState(false)
+  const [emailInf,   setEmailInf]   = useState(null)
+  const [csvModal,   setCsvModal]   = useState(false)
+  const [csvData,    setCsvData]    = useState([])
+  const [csvText,    setCsvText]    = useState('')
+  const [quickMode,  setQuickMode]  = useState(false)
+  const [csvSaving,  setCsvSaving]  = useState(false)
 
   const filtered = influencers.filter(inf =>
     inf.name.toLowerCase().includes(search.toLowerCase())
@@ -149,6 +199,18 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
   }))
 
   const openAdd  = () => { setForm(EMPTY); setEditId(null); setErr(''); setModal(true) }
+  const openEmail = (inf) => { setEmailInf(inf); setEmailModal(true) }
+  const openCSV   = () => { setCsvText(''); setCsvData([]); setCsvModal(true) }
+  const handleCSVParse = (text) => { setCsvText(text); setCsvData(parseCSV(text)) }
+  const handleCSVImport = async () => {
+    if (!csvData.length) return
+    setCsvSaving(true)
+    const { error } = await supabase.from('influencers').insert(csvData)
+    if (error) { alert('匯入失敗：' + error.message) }
+    else { setCsvModal(false); onRefresh(); alert(`✅ 成功匯入 ${csvData.length} 筆 KOL！`) }
+    setCsvSaving(false)
+  }
+
   const openEdit = (inf) => {
     setForm({
       name: inf.name || '', ig_handle: inf.ig_handle || '', photo_url: inf.photo_url || '',
@@ -250,7 +312,8 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
             style={{ padding: '8px 14px', borderRadius: '8px', border: '1.5px solid #E5E7EB', fontSize: '13px', width: '200px' }}
           />
           <button className="btn-secondary" onClick={onBack}>← 返回名單</button>
-          <button className="btn-primary"   onClick={openAdd}>＋ 新增網紅</button>
+          <button onClick={openCSV} style={{ padding:'8px 14px', borderRadius:'8px', background:'#EFF6FF', color:'#1D4ED8', border:'1.5px solid #BFDBFE', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>📥 CSV 匯入</button>
+          <button className="btn-primary" onClick={openAdd}>＋ 新增網紅</button>
         </div>
       </div>
 
@@ -362,7 +425,15 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
 
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '18px', fontWeight: 800 }}>{editId ? '✏️ 編輯網紅資料' : '➕ 新增網紅'}</h2>
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800 }}>{editId ? '✏️ 編輯網紅資料' : '➕ 新增網紅'}</h2>
+                {!editId && (
+                  <label style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'4px', fontSize:'12px', color:'#6B7280', cursor:'pointer' }}>
+                    <input type="checkbox" checked={quickMode} onChange={e => setQuickMode(e.target.checked)} style={{ accentColor:'#E8523A' }} />
+                    ⚡ 快速模式（只填必填）
+                  </label>
+                )}
+              </div>
               <button onClick={() => setModal(false)} style={{ background: '#F3F4F6', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontSize: '16px', color: '#6B7280', cursor: 'pointer' }}>✕</button>
             </div>
 
@@ -581,6 +652,75 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
               <button className="btn-primary" onClick={handleSave} disabled={saving}>
                 {saving ? '⏳ 儲存中...' : '💾 儲存'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Email Modal ── */}
+      {emailModal && emailInf && (
+        <div onClick={() => setEmailModal(false)} style={{ position:'fixed', inset:0, zIndex:300, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background:'white', borderRadius:'20px', width:'100%', maxWidth:'600px', maxHeight:'90vh', overflow:'auto', padding:'28px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
+              <h2 style={{ fontSize:'18px', fontWeight:800 }}>✉️ 開發信 — {emailInf.name}</h2>
+              <button onClick={() => setEmailModal(false)} style={{ background:'#F3F4F6', border:'none', borderRadius:'50%', width:'32px', height:'32px', fontSize:'16px', cursor:'pointer' }}>✕</button>
+            </div>
+            <textarea
+              readOnly
+              value={generateEmail(emailInf)}
+              style={{ width:'100%', minHeight:'320px', padding:'14px', borderRadius:'12px', border:'1.5px solid #E5E7EB', fontSize:'13px', lineHeight:1.8, resize:'vertical', background:'#FAFAFA', boxSizing:'border-box' }}
+            />
+            <div style={{ display:'flex', gap:'10px', marginTop:'16px', justifyContent:'flex-end' }}>
+              <button onClick={() => setEmailModal(false)} style={{ padding:'8px 18px', borderRadius:'8px', background:'#F3F4F6', border:'none', fontSize:'13px', fontWeight:600, cursor:'pointer' }}>關閉</button>
+              <button
+                onClick={() => { navigator.clipboard.writeText(generateEmail(emailInf)); showToast('已複製到剪貼簿！') }}
+                style={{ padding:'8px 18px', borderRadius:'8px', background:'linear-gradient(135deg,#E8523A,#F59E0B)', color:'white', border:'none', fontSize:'13px', fontWeight:700, cursor:'pointer' }}
+              >📋 複製全文</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── CSV Import Modal ── */}
+      {csvModal && (
+        <div onClick={() => setCsvModal(false)} style={{ position:'fixed', inset:0, zIndex:300, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background:'white', borderRadius:'20px', width:'100%', maxWidth:'680px', maxHeight:'90vh', overflow:'auto', padding:'28px' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
+              <h2 style={{ fontSize:'18px', fontWeight:800 }}>📥 CSV 批量匯入</h2>
+              <button onClick={() => setCsvModal(false)} style={{ background:'#F3F4F6', border:'none', borderRadius:'50%', width:'32px', height:'32px', fontSize:'16px', cursor:'pointer' }}>✕</button>
+            </div>
+            <div style={{ background:'#F0F9FF', border:'1.5px solid #BAE6FD', borderRadius:'12px', padding:'14px', marginBottom:'16px', fontSize:'12px', color:'#0369A1', lineHeight:2 }}>
+              📋 <strong>CSV 格式（第一列為標題，之後每行一位 KOL）：</strong><br/>
+              <code style={{ background:'white', padding:'8px 12px', borderRadius:'6px', display:'block', marginTop:'6px', fontSize:'11px', color:'#1A1A1A' }}>
+                名稱,IG帳號,IG粉絲數,互動率(%),風格(用|分隔),備註<br/>
+                王小明,@wangxm,15000,4.5,美妝|生活,有合作意願<br/>
+                李美美,@meimei,32000,3.2,穿搭|時尚,
+              </code>
+            </div>
+            <textarea
+              value={csvText}
+              onChange={e => handleCSVParse(e.target.value)}
+              placeholder="在這裡貼上 CSV 內容..."
+              style={{ width:'100%', minHeight:'180px', padding:'12px', borderRadius:'10px', border:'1.5px solid #E5E7EB', fontSize:'12px', fontFamily:'monospace', resize:'vertical', boxSizing:'border-box' }}
+            />
+            {csvData.length > 0 && (
+              <div style={{ marginTop:'14px', background:'#F0FDF4', border:'1.5px solid #86EFAC', borderRadius:'10px', padding:'12px' }}>
+                <div style={{ fontWeight:700, color:'#15803D', marginBottom:'8px' }}>✅ 解析到 {csvData.length} 筆資料，預覽前 3 筆：</div>
+                {csvData.slice(0,3).map((r,i) => (
+                  <div key={i} style={{ fontSize:'12px', color:'#374151', marginBottom:'4px' }}>
+                    {i+1}. <strong>{r.name}</strong> {r.ig_handle} — IG粉絲 {r.followers_ig?.toLocaleString()} · ER {r.engagement_rate}% · 風格 {r.styles?.join('、')}
+                  </div>
+                ))}
+                {csvData.length > 3 && <div style={{ fontSize:'11px', color:'#6B7280' }}>... 還有 {csvData.length - 3} 筆</div>}
+              </div>
+            )}
+            <div style={{ display:'flex', gap:'10px', marginTop:'16px', justifyContent:'flex-end' }}>
+              <button onClick={() => setCsvModal(false)} style={{ padding:'8px 18px', borderRadius:'8px', background:'#F3F4F6', border:'none', fontSize:'13px', fontWeight:600, cursor:'pointer' }}>取消</button>
+              <button
+                onClick={handleCSVImport}
+                disabled={csvData.length === 0 || csvSaving}
+                style={{ padding:'8px 18px', borderRadius:'8px', background: csvData.length > 0 ? 'linear-gradient(135deg,#E8523A,#F59E0B)' : '#E5E7EB', color: csvData.length > 0 ? 'white' : '#9CA3AF', border:'none', fontSize:'13px', fontWeight:700, cursor: csvData.length > 0 ? 'pointer' : 'not-allowed' }}
+              >{csvSaving ? '⏳ 匯入中...' : `📥 確認匯入 ${csvData.length} 筆`}</button>
             </div>
           </div>
         </div>
