@@ -4,13 +4,14 @@ import { fmtNum, calcScore } from './KolCard'
 
 const PLATFORMS = ['IG', 'TikTok', 'YouTube']
 const ALL_STYLES = ['穿搭', '美妝', '生活', '美食', '旅遊', '健身', '寵物', '3C', '親子', '藝術', '時尚']
-const STATUSES = ['洽談中', '已核准', '已確認', '合作完成', '暫緩']
+const STATUSES = ['洽談中', '已核准', '已確認', '合作完成', '暫緩', '已取消']
 const STATUS_COLOR = {
   '洽談中':   { bg: '#FEF3C7', color: '#92400E' },
-  '已核准':   { bg: '#E0F2FE', color: '#0369A1' },
+  '已核准':   { bg: '#D1FAE5', color: '#065F46' },
   '已確認':   { bg: '#DBEAFE', color: '#1E40AF' },
-  '合作完成': { bg: '#D1FAE5', color: '#065F46' },
+  '合作完成': { bg: '#BBF7D0', color: '#14532D' },
   '暫緩':     { bg: '#F3F4F6', color: '#6B7280' },
+  '已取消':   { bg: '#FEE2E2', color: '#991B1B' },
 }
 
 const EMPTY = {
@@ -34,7 +35,7 @@ const calcFit = (form) => {
   // 風格契合度（最多 45 分）— 美妝/穿搭/生活/時尚 最符合護膚品牌
   const STYLE_W = {
     '美妝': 15, '穿搭': 12, '生活': 10, '時尚': 10,
-    '健身': 8,  '親子': 7,  '旅遊': 6,  '羦食': 5,
+    '健身': 8,  '親子': 7,  '旅遊': 6,  '美食': 5,
     '寵物': 5,  '藝術': 5,  '3C': 3,
   }
   score += Math.min((form.styles || []).reduce((s, st) => s + (STYLE_W[st] || 0), 0), 45)
@@ -76,6 +77,7 @@ const generateAnalysis = (form) => {
   const platforms = form.platforms || []
   const lines   = []
 
+  // 規模評估
   if (ig >= 10000 && ig < 50000)
     lines.push('📊 規模：奈米網紅（1萬-5萬），互動率高、受眾黏著度強，最適合 DAYDAY 真實口碑推廣。')
   else if (ig >= 50000 && ig < 200000)
@@ -87,6 +89,7 @@ const generateAnalysis = (form) => {
   else
     lines.push('📊 規模：粉絲數未填或偏少，建議先確認帳號是否在成長期。')
 
+  // 互動率
   if (er >= 5)
     lines.push(`💬 互動率 ${er}%：非常優異（業界平均約 1-3%），受眾高度活躍，推文轉換力強。`)
   else if (er >= 3)
@@ -96,6 +99,7 @@ const generateAnalysis = (form) => {
   else if (er > 0)
     lines.push(`💬 互動率 ${er}%：偏低，需了解粉絲組成，避免花費預算在無效曝光。`)
 
+  // 風格契合
   const goodStyles = styles.filter(s => ['美妝','穿搭','生活','時尚'].includes(s))
   const otherStyles = styles.filter(s => !['美妝','穿搭','生活','時尚'].includes(s))
   if (goodStyles.length > 0)
@@ -105,16 +109,19 @@ const generateAnalysis = (form) => {
   if (styles.length === 0)
     lines.push('⚠️ 風格標籤未填，請補充以提升分析準確度。')
 
+  // 平台
   if (platforms.includes('IG'))
     lines.push('📸 IG 視覺屬性最適合護膚品牌，適合開箱、GRWM、成分教育等內容形式。')
   if (platforms.includes('TikTok'))
     lines.push('🎵 TikTok 適合短影音病毒式傳播，可主打「快速見效」或「成分揭密」角度。')
 
+  // ROI 估算
   if (ig > 0) {
     const roi = Math.round(ig * 0.3 * 0.1 * 1919)
-    lines.push(`💰 預估 ROI：NT${roi.toLocaleString()}（粉絲 × 30%觸及 × 10%轉換 × AOV NT$1,919）`)
+    lines.push(`💰 預估 ROI：NT$${roi.toLocaleString()}（粉絲 × 30%觸及 × 10%轉換 × AOV NT$1,919）`)
   }
 
+  // 總結建議
   if (fit >= 85)
     lines.push('👉 建議：強力推薦優先接洽，具備長期合作潛力，可考慮獨家或首波合作。')
   else if (fit >= 70)
@@ -129,47 +136,50 @@ const generateAnalysis = (form) => {
   return lines.join('\n')
 }
 
+// ── 開發信產生器 ──────────────────────────────────────────
+const generateEmail = (inf) => `Hi ${inf.name}
 
-const generateEmail = (inf) => {
-  const handle = (inf.ig_handle || '').replace(/^@/, '')
-  const name   = inf.name || '您好'
-  return `主旨：DAYDAY 純淨保養 × ${name} 合作邀請
+我們是台灣的保養品牌 dayday skincare團隊
 
-Hi ${name}，
+這個品牌由創辦人醫美醫師 Tina 一手打造，從「日常保養應該溫柔、簡潔且可信賴」的理念出發，專注開發低刺激、高效保濕的護膚產品。
 
-我是 DAYDAY 品牌的合作負責人。在 Instagram 上看到您的帳號 @${handle}，您的內容風格非常符合我們品牌的調性——真實、有感、注重成分透明度，我們認為這是非常難得的特質。
+我們長期關注您在網路上分享的內容，非常欣賞也慕名已久。
 
-DAYDAY 是一個專注於純淨保養的台灣品牌，主打讓肌膚真正有感受的成分配方，目前正在尋找與品牌 DNA 契合的創作者進行長期合作。
+想與您分享我們的產品「保濕修護面膜」以及「煥白透亮面膜」兩款都是無酒精、不含防腐劑及香精，成分跟配方都是敏感肌、醫美術後、孕婦可以放心使用的。
 
-合作方式彈性，可以是產品試用開箱、GRWM 或成分教育類內容，我們也歡迎您提出自己的創作想法。
+【品牌簡介】
+dayday 專注於日常保養體驗的提升，產品設計強調：
+• 保濕成分
+• 低刺激配方
+• 極簡設計
+• 穩定有效的肌膚修護感受
+www.daydayskincare.com
 
-如果您有興趣，歡迎回覆此信或私訊 IG，我們可以進一步討論細節！期待與您合作 🌿
+目前主力產品包含保濕修護與透亮系列面膜，主打穩定膚況、提升肌膚舒適度與光澤感。
+若是用了後喜歡也希望有機會再討論後續更進一步的合作！
 
-DAYDAY 品牌合作團隊`
-}
+【合作模式】
+形式可彈性調整，例如：
+✓ IG / Reels / 限動分享
+✓ 使用體驗開箱
+✓ 團購專屬優惠連結
+✓ 專屬折扣碼
+✓ 粉絲福利活動
 
-const parseCSV = (text) => {
-  const lines = text.trim().split('\n').filter(l => l.trim())
-  if (lines.length < 2) return []
-  // Skip header row
-  return lines.slice(1).map(line => {
-    const cols = line.split(',').map(c => c.trim().replace(/^"|"$/g, ''))
-    const [name, ig_handle, followers_ig, engagement_rate, stylesRaw, note] = cols
-    const styles = stylesRaw ? stylesRaw.split('|').map(s => s.trim()).filter(Boolean) : []
-    return {
-      name: name || '',
-      ig_handle: ig_handle ? ('@' + ig_handle.replace(/^@/, '')) : '',
-      photo_url: ig_handle ? `https://unavatar.io/instagram/${ig_handle.replace(/^@/, '')}` : '',
-      platforms: ['IG'],
-      styles,
-      followers_ig: Number(followers_ig) || 0,
-      followers_yt: 0, followers_tiktok: 0,
-      engagement_rate: parseFloat(engagement_rate) || 0,
-      status: '洽談中',
-      contact: '', fee_ntd: 0, brand_value: '', note: note || '',
-    }
-  }).filter(r => r.name)
-}
+【合作資源】
+我們可提供：
+✓ 全品項正貨試用
+✓ 專屬團購優惠機制
+✓ 分潤合作方案
+✓ 團購素材支援（圖片 / 文案 / 教學）
+✓ 專人客服與出貨支援
+
+若您有興趣體驗看看我們的產品，歡迎直接回覆此信，提供收件的資料，我們將立即安排寄出。
+
+祝一切順心
+dayday skincare
+品牌合作窗口
+instagram: @dayday.skincare`
 
 // ─────────────────────────────────────────────────────────
 export default function AdminPanel({ influencers, onRefresh, onBack, showToast }) {
@@ -180,13 +190,18 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
   const [err, setErr]                   = useState('')
   const [search, setSearch]             = useState('')
   const [pasteUploading, setPasteUploading] = useState(false)
-  const [emailModal, setEmailModal] = useState(false)
-  const [emailInf,   setEmailInf]   = useState(null)
-  const [csvModal,   setCsvModal]   = useState(false)
-  const [csvData,    setCsvData]    = useState([])
-  const [csvText,    setCsvText]    = useState('')
-  const [quickMode,  setQuickMode]  = useState(false)
-  const [csvSaving,  setCsvSaving]  = useState(false)
+  const [emailModal, setEmailModal]     = useState(false)
+  const [emailInf, setEmailInf]         = useState(null)
+  const [copiedEmail, setCopiedEmail]   = useState(false)
+
+  const openEmail = (inf) => { setEmailInf(inf); setCopiedEmail(false); setEmailModal(true) }
+  const copyEmail = () => {
+    if (!emailInf) return
+    navigator.clipboard.writeText(generateEmail(emailInf)).then(() => {
+      setCopiedEmail(true)
+      setTimeout(() => setCopiedEmail(false), 2500)
+    })
+  }
 
   const filtered = influencers.filter(inf =>
     inf.name.toLowerCase().includes(search.toLowerCase())
@@ -199,18 +214,6 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
   }))
 
   const openAdd  = () => { setForm(EMPTY); setEditId(null); setErr(''); setModal(true) }
-  const openEmail = (inf) => { setEmailInf(inf); setEmailModal(true) }
-  const openCSV   = () => { setCsvText(''); setCsvData([]); setCsvModal(true) }
-  const handleCSVParse = (text) => { setCsvText(text); setCsvData(parseCSV(text)) }
-  const handleCSVImport = async () => {
-    if (!csvData.length) return
-    setCsvSaving(true)
-    const { error } = await supabase.from('influencers').insert(csvData)
-    if (error) { alert('匯入失敗：' + error.message) }
-    else { setCsvModal(false); onRefresh(); alert(`✅ 成功匯入 ${csvData.length} 筆 KOL！`) }
-    setCsvSaving(false)
-  }
-
   const openEdit = (inf) => {
     setForm({
       name: inf.name || '', ig_handle: inf.ig_handle || '', photo_url: inf.photo_url || '',
@@ -312,8 +315,7 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
             style={{ padding: '8px 14px', borderRadius: '8px', border: '1.5px solid #E5E7EB', fontSize: '13px', width: '200px' }}
           />
           <button className="btn-secondary" onClick={onBack}>← 返回名單</button>
-          <button onClick={openCSV} style={{ padding:'8px 14px', borderRadius:'8px', background:'#EFF6FF', color:'#1D4ED8', border:'1.5px solid #BFDBFE', fontSize:'13px', fontWeight:700, cursor:'pointer' }}>📥 CSV 匯入</button>
-          <button className="btn-primary" onClick={openAdd}>＋ 新增網紅</button>
+          <button className="btn-primary"   onClick={openAdd}>＋ 新增網紅</button>
         </div>
       </div>
 
@@ -360,7 +362,7 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                             target="_blank" rel="noopener noreferrer"
                             style={{ fontSize: '11px', color: '#E1306C', textDecoration: 'none', fontWeight: 600 }}
                           >
-                            ↗ @{inf.ig_handle}
+                            ↗ {inf.ig_handle.startsWith('@') ? inf.ig_handle : '@' + inf.ig_handle}
                           </a>
                         )}
                       </div>
@@ -403,7 +405,13 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                   </td>
                   {/* Actions */}
                   <td style={{ padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', gap: '6px' }}>
+                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                      {inf.status === '已核准' && (
+                        <button
+                          onClick={() => openEmail(inf)}
+                          style={{ padding: '5px 12px', borderRadius: '6px', border: '1.5px solid #BBF7D0', background: '#F0FDF4', fontSize: '12px', color: '#15803D', cursor: 'pointer', fontWeight: 700 }}
+                        >✉️ 開發信</button>
+                      )}
                       <button onClick={() => openEdit(inf)} style={{ padding: '5px 12px', borderRadius: '6px', border: '1.5px solid #E5E7EB', background: 'white', fontSize: '12px', color: '#374151', cursor: 'pointer' }}>✏️ 編輯</button>
                       <button onClick={() => handleDelete(inf.id, inf.name)} style={{ padding: '5px 12px', borderRadius: '6px', border: '1.5px solid #FEE2E2', background: '#FFF5F5', fontSize: '12px', color: '#E8523A', cursor: 'pointer' }}>🗑️ 刪除</button>
                     </div>
@@ -415,6 +423,53 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
         </table>
       </div>
 
+      {/* ── Email Modal ── */}
+      {emailModal && emailInf && (
+        <div
+          onClick={e => e.target === e.currentTarget && setEmailModal(false)}
+          style={{ position: 'fixed', inset: 0, zIndex: 400, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+        >
+          <div style={{ background: 'white', borderRadius: '20px', width: '100%', maxWidth: '620px', maxHeight: '88vh', overflow: 'auto', padding: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div>
+                <h2 style={{ fontSize: '18px', fontWeight: 800 }}>✉️ 開發信</h2>
+                <p style={{ fontSize: '13px', color: '#9CA3AF', marginTop: '2px' }}>收件人：{emailInf.name}{emailInf.ig_handle ? ` (${emailInf.ig_handle})` : ''}</p>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                <button
+                  onClick={copyEmail}
+                  style={{
+                    padding: '8px 18px', borderRadius: '10px',
+                    background: copiedEmail ? '#D1FAE5' : '#E8523A',
+                    color: copiedEmail ? '#065F46' : 'white',
+                    border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {copiedEmail ? '✅ 已複製！' : '📋 複製全文'}
+                </button>
+                <button
+                  onClick={() => setEmailModal(false)}
+                  style={{ background: '#F3F4F6', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontSize: '16px', color: '#6B7280', cursor: 'pointer' }}
+                >✕</button>
+              </div>
+            </div>
+            <pre style={{
+              background: '#F9FAFB', borderRadius: '12px', padding: '20px',
+              fontSize: '13px', lineHeight: '1.7', color: '#374151',
+              whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+              border: '1.5px solid #E5E7EB', fontFamily: 'inherit',
+              maxHeight: '60vh', overflow: 'auto',
+            }}>
+              {generateEmail(emailInf)}
+            </pre>
+            <p style={{ fontSize: '12px', color: '#9CA3AF', marginTop: '12px', textAlign: 'center' }}>
+              點「複製全文」後，貼入 Gmail / LINE 傳給網紅
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── Modal ── */}
       {modal && (
         <div
@@ -425,15 +480,7 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
 
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-              <div>
-                <h2 style={{ fontSize: '18px', fontWeight: 800 }}>{editId ? '✏️ 編輯網紅資料' : '➕ 新增網紅'}</h2>
-                {!editId && (
-                  <label style={{ display:'flex', alignItems:'center', gap:'6px', marginTop:'4px', fontSize:'12px', color:'#6B7280', cursor:'pointer' }}>
-                    <input type="checkbox" checked={quickMode} onChange={e => setQuickMode(e.target.checked)} style={{ accentColor:'#E8523A' }} />
-                    ⚡ 快速模式（只填必填）
-                  </label>
-                )}
-              </div>
+              <h2 style={{ fontSize: '18px', fontWeight: 800 }}>{editId ? '✏️ 編輯網紅資料' : '➕ 新增網紅'}</h2>
               <button onClick={() => setModal(false)} style={{ background: '#F3F4F6', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontSize: '16px', color: '#6B7280', cursor: 'pointer' }}>✕</button>
             </div>
 
@@ -511,20 +558,20 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 </div>
               </div>
 
-              {/*圖片封址（把丕傦断） */}
+              {/* 圖片網址（手動備用） */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>圖片封址（把丕輸入或覆蓋）</label>
+                <label style={labelS}>圖片網址（手動輸入或覆蓋）</label>
                 <input
                   value={form.photo_url}
                   onChange={e => set('photo_url', e.target.value)}
-                  placeholder="貼上後自動填入，或把丕輸入 https://..."
+                  placeholder="貼上後自動填入，或手動輸入 https://..."
                   style={{ ...inputS, color: '#6B7280' }}
                 />
               </div>
 
               {/* 平台 */}
               <div style={{ gridColumn: '1 / -1' }}>
-                <label style={labelS}>噳台（可多遴）</label>
+                <label style={labelS}>平台（可多選）</label>
                 <div style={{ display: 'flex', gap: '16px' }}>
                   {PLATFORMS.map(p => (
                     <label key={p} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
@@ -535,14 +582,14 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 </div>
               </div>
 
-              {/* IG 粉絲數 */}
+              {/* 粉絲數 */}
               <div>
                 <label style={labelS}>📸 IG 粉絲數</label>
                 <input type="number" value={form.followers_ig} onChange={e => set('followers_ig', e.target.value)} placeholder="例：150000" style={inputS} />
               </div>
               <div>
-                <label style={labelS}>▶️ YouTube 訂山數</label>
-              <input type="number" value={form.followers_yt} onChange={e => set('followers_yt', e.target.value)} placeholder="例：80000" style={inputS} />
+                <label style={labelS}>▶️ YouTube 訂閱數</label>
+                <input type="number" value={form.followers_yt} onChange={e => set('followers_yt', e.target.value)} placeholder="例：80000" style={inputS} />
               </div>
               <div>
                 <label style={labelS}>🎵 TikTok 粉絲數</label>
@@ -652,75 +699,6 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
               <button className="btn-primary" onClick={handleSave} disabled={saving}>
                 {saving ? '⏳ 儲存中...' : '💾 儲存'}
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Email Modal ── */}
-      {emailModal && emailInf && (
-        <div onClick={() => setEmailModal(false)} style={{ position:'fixed', inset:0, zIndex:300, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:'white', borderRadius:'20px', width:'100%', maxWidth:'600px', maxHeight:'90vh', overflow:'auto', padding:'28px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
-              <h2 style={{ fontSize:'18px', fontWeight:800 }}>✉️ 開發信 — {emailInf.name}</h2>
-              <button onClick={() => setEmailModal(false)} style={{ background:'#F3F4F6', border:'none', borderRadius:'50%', width:'32px', height:'32px', fontSize:'16px', cursor:'pointer' }}>✕</button>
-            </div>
-            <textarea
-              readOnly
-              value={generateEmail(emailInf)}
-              style={{ width:'100%', minHeight:'320px', padding:'14px', borderRadius:'12px', border:'1.5px solid #E5E7EB', fontSize:'13px', lineHeight:1.8, resize:'vertical', background:'#FAFAFA', boxSizing:'border-box' }}
-            />
-            <div style={{ display:'flex', gap:'10px', marginTop:'16px', justifyContent:'flex-end' }}>
-              <button onClick={() => setEmailModal(false)} style={{ padding:'8px 18px', borderRadius:'8px', background:'#F3F4F6', border:'none', fontSize:'13px', fontWeight:600, cursor:'pointer' }}>關閉</button>
-              <button
-                onClick={() => { navigator.clipboard.writeText(generateEmail(emailInf)); showToast('已複製到剪貼簿！') }}
-                style={{ padding:'8px 18px', borderRadius:'8px', background:'linear-gradient(135deg,#E8523A,#F59E0B)', color:'white', border:'none', fontSize:'13px', fontWeight:700, cursor:'pointer' }}
-              >📋 複製全文</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── CSV Import Modal ── */}
-      {csvModal && (
-        <div onClick={() => setCsvModal(false)} style={{ position:'fixed', inset:0, zIndex:300, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
-          <div onClick={e => e.stopPropagation()} style={{ background:'white', borderRadius:'20px', width:'100%', maxWidth:'680px', maxHeight:'90vh', overflow:'auto', padding:'28px' }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'16px' }}>
-              <h2 style={{ fontSize:'18px', fontWeight:800 }}>📥 CSV 批量匯入</h2>
-              <button onClick={() => setCsvModal(false)} style={{ background:'#F3F4F6', border:'none', borderRadius:'50%', width:'32px', height:'32px', fontSize:'16px', cursor:'pointer' }}>✕</button>
-            </div>
-            <div style={{ background:'#F0F9FF', border:'1.5px solid #BAE6FD', borderRadius:'12px', padding:'14px', marginBottom:'16px', fontSize:'12px', color:'#0369A1', lineHeight:2 }}>
-              📋 <strong>CSV 格式（第一列為標題，之後每行一位 KOL）：</strong><br/>
-              <code style={{ background:'white', padding:'8px 12px', borderRadius:'6px', display:'block', marginTop:'6px', fontSize:'11px', color:'#1A1A1A' }}>
-                名稱,IG帳號,IG粉絲數,互動率(%),風格(用|分隔),備註<br/>
-                王小明,@wangxm,15000,4.5,美妝|生活,有合作意願<br/>
-                李美美,@meimei,32000,3.2,穿搭|時尚,
-              </code>
-            </div>
-            <textarea
-              value={csvText}
-              onChange={e => handleCSVParse(e.target.value)}
-              placeholder="在這裡貼上 CSV 內容..."
-              style={{ width:'100%', minHeight:'180px', padding:'12px', borderRadius:'10px', border:'1.5px solid #E5E7EB', fontSize:'12px', fontFamily:'monospace', resize:'vertical', boxSizing:'border-box' }}
-            />
-            {csvData.length > 0 && (
-              <div style={{ marginTop:'14px', background:'#F0FDF4', border:'1.5px solid #86EFAC', borderRadius:'10px', padding:'12px' }}>
-                <div style={{ fontWeight:700, color:'#15803D', marginBottom:'8px' }}>✅ 解析到 {csvData.length} 筆資料，預覽前 3 筆：</div>
-                {csvData.slice(0,3).map((r,i) => (
-                  <div key={i} style={{ fontSize:'12px', color:'#374151', marginBottom:'4px' }}>
-                    {i+1}. <strong>{r.name}</strong> {r.ig_handle} — IG粉絲 {r.followers_ig?.toLocaleString()} · ER {r.engagement_rate}% · 風格 {r.styles?.join('、')}
-                  </div>
-                ))}
-                {csvData.length > 3 && <div style={{ fontSize:'11px', color:'#6B7280' }}>... 還有 {csvData.length - 3} 筆</div>}
-              </div>
-            )}
-            <div style={{ display:'flex', gap:'10px', marginTop:'16px', justifyContent:'flex-end' }}>
-              <button onClick={() => setCsvModal(false)} style={{ padding:'8px 18px', borderRadius:'8px', background:'#F3F4F6', border:'none', fontSize:'13px', fontWeight:600, cursor:'pointer' }}>取消</button>
-              <button
-                onClick={handleCSVImport}
-                disabled={csvData.length === 0 || csvSaving}
-                style={{ padding:'8px 18px', borderRadius:'8px', background: csvData.length > 0 ? 'linear-gradient(135deg,#E8523A,#F59E0B)' : '#E5E7EB', color: csvData.length > 0 ? 'white' : '#9CA3AF', border:'none', fontSize:'13px', fontWeight:700, cursor: csvData.length > 0 ? 'pointer' : 'not-allowed' }}
-              >{csvSaving ? '⏳ 匯入中...' : `📥 確認匯入 ${csvData.length} 筆`}</button>
             </div>
           </div>
         </div>
