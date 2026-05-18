@@ -17,6 +17,7 @@ const avatarInitial = (name) => (name || '?').charAt(0).toUpperCase()
 const STATUS_STYLE = {
   '洽談中':   { bg: '#FEF3C7', color: '#92400E' },
   '已核准':   { bg: '#D1FAE5', color: '#065F46' },
+  '已寄信':   { bg: '#EDE9FE', color: '#6D28D9' },
   '已確認':   { bg: '#DBEAFE', color: '#1E40AF' },
   '合作完成': { bg: '#BBF7D0', color: '#14532D' },
   '暫緩':     { bg: '#F3F4F6', color: '#6B7280' },
@@ -303,7 +304,7 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
                     textDecoration: 'none', marginBottom: '16px',
                   }}
                 >
-                  📸 @{igDisplay} � 開啟 Instagram ↗
+                  📸 @{igDisplay} — 開啟 Instagram ↗
                 </a>
               )}
 
