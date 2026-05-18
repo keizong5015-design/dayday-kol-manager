@@ -3,7 +3,7 @@ import KolCard, { calcScore } from './KolCard'
 
 const PLATFORMS = ['IG', 'TikTok', 'YouTube']
 const ALL_STYLES = ['穿搭', '美妝', '生活', '美食', '旅遊', '健身', '寵物', '3C', '親子', '藝術', '時尚']
-const STATUSES = ['全部', '洽談中', '已核准', '已確認', '合作完成', '暫緩', '已取消']
+const STATUSES = ['全部', '洽談中', '已核准', '已寄信', '已確認', '合作完成', '暫緩', '已取消']
 const SORT_OPTIONS = [
   { value: 'newest', label: '最新新增' },
   { value: 'score_desc', label: '推薦分↓' },
@@ -24,6 +24,7 @@ export default function Gallery({ influencers, loading, onGoAdmin, onRefresh }) 
     if (onRefresh) onRefresh()
     if (newStatus === '已取消') setStatus('已取消')
     if (newStatus === '已核准') setStatus('已核准')
+    if (newStatus === '已寄信') setStatus('已寄信')
   }
 
   const toggle = (arr, setArr, val) =>
