@@ -19,12 +19,14 @@ export default function Gallery({ influencers, loading, onGoAdmin, onRefresh }) 
   const [status, setStatus] = useState('全部')
   const [sort, setSort] = useState('newest')
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [notif, setNotif] = useState(null)
 
   const handleStatusChange = (newStatus) => {
     if (onRefresh) onRefresh()
     if (newStatus === '已取消') setStatus('已取消')
     if (newStatus === '已核准') setStatus('已核准')
     if (newStatus === '已寄信') setStatus('已寄信')
+    if (newStatus === '洽談中') setStatus('洽談中')
   }
 
   const toggle = (arr, setArr, val) =>
@@ -136,6 +138,11 @@ export default function Gallery({ influencers, loading, onGoAdmin, onRefresh }) 
       )}
 
       {/* ── Main ── */}
+      {notif && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999, background: '#7C3AED', color: 'white', padding: '14px 24px', textAlign: 'center', fontSize: '16px', fontWeight: 600, boxShadow: '0 2px 8px rgba(0,0,0,0.2)', letterSpacing: '0.5px' }}>
+          📩 {notif} 已回覆！狀態已更新為「洽談中」
+        </div>
+      )}
       <main style={{ flex: 1, minWidth: 0 }}>
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
@@ -212,7 +219,7 @@ export default function Gallery({ influencers, loading, onGoAdmin, onRefresh }) 
             gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
             gap: '18px',
           }}>
-            {result.map(inf => <KolCard key={inf.id} influencer={inf} onStatusChange={handleStatusChange} />)}
+            {result.map(inf => <KolCard key={inf.id} influencer={inf} onStatusChange={handleStatusChange} onReplyMark={(name) => { setNotif(name); setTimeout(() => setNotif(null), 4500) }} />)}
           </div>
         )}
       </main>
