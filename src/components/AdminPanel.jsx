@@ -4,10 +4,11 @@ import { fmtNum, calcScore } from './KolCard'
 
 const PLATFORMS = ['IG', 'TikTok', 'YouTube']
 const ALL_STYLES = ['穿搭', '美妝', '生活', '美食', '旅遊', '健身', '寵物', '3C', '親子', '藝術', '時尚']
-const STATUSES = ['洽談中', '已核准', '已確認', '合作完成', '暫緩', '已取消']
+const STATUSES = ['洽談中', '已核准', '已寄信', '已確認', '合作完成', '暫緩', '已取消']
 const STATUS_COLOR = {
   '洽談中':   { bg: '#FEF3C7', color: '#92400E' },
   '已核准':   { bg: '#D1FAE5', color: '#065F46' },
+  '已寄信':   { bg: '#EDE9FE', color: '#6D28D9' },
   '已確認':   { bg: '#DBEAFE', color: '#1E40AF' },
   '合作完成': { bg: '#BBF7D0', color: '#14532D' },
   '暫緩':     { bg: '#F3F4F6', color: '#6B7280' },
@@ -193,8 +194,10 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
   const [emailModal, setEmailModal]     = useState(false)
   const [emailInf, setEmailInf]         = useState(null)
   const [copiedEmail, setCopiedEmail]   = useState(false)
+  const [markingSent, setMarkingSent]   = useState(false)
+  const [emailSentDone, setEmailSentDone] = useState(false)
 
-  const openEmail = (inf) => { setEmailInf(inf); setCopiedEmail(false); setEmailModal(true) }
+  const openEmail = (inf) => { setEmailInf(inf); setCopiedEmail(false); setEmailSentDone(false); setEmailModal(true) }
   const copyEmail = () => {
     if (!emailInf) return
     navigator.clipboard.writeText(generateEmail(emailInf)).then(() => {
@@ -298,6 +301,16 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
   // 試配度（即時計算）
   const fit  = calcFit(form)
   const fi   = fitInfo(fit)
+  const markAsSent = async () => {
+    if (!emailInf || markingSent) return
+    setMarkingSent(true)
+    const { error } = await supabase.from('influencers').update({ status: '已寄信' }).eq('id', emailInf.id)
+    setMarkingSent(false)
+    if (error) { showToast('更新失敗：' + error.message, 'error'); return }
+    setEmailSentDone(true)
+    showToast('✅ ' + emailInf.name + ' 已標記為「已寄信」')
+    onRefresh()
+  }
 
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px' }}>
@@ -448,6 +461,16 @@ export default function AdminPanel({ influencers, onRefresh, onBack, showToast }
                 >
                   {copiedEmail ? '✅ 已複製！' : '📋 複製全文'}
                 </button>
+                <div style={{ background: '#EDE9FE', border: '1px solid #DDD6FE', borderRadius: '8px', padding: '12px 16px', marginTop: '8px' }}>
+                  <p style={{ margin: '0 0 8px 0', color: '#6D28D9', fontWeight: 600, fontSize: '14px' }}>📮 寄信追蹤</p>
+                  {emailSentDone
+                    ? <p style={{ margin: 0, color: '#6D28D9', fontSize: '14px' }}>✅ 已標記為「已寄信」</p>
+                    : <button onClick={markAsSent} disabled={markingSent}
+                        style={{ background: '#7C3AED', color: '#fff', border: 'none', borderRadius: '6px', padding: '8px 16px', cursor: markingSent ? 'not-allowed' : 'pointer', fontSize: '14px', opacity: markingSent ? 0.7 : 1 }}>
+                        {markingSent ? '更新中...' : '📮 確認已寄出'}
+                      </button>
+                  }
+                </div>
                 <button
                   onClick={() => setEmailModal(false)}
                   style={{ background: '#F3F4F6', border: 'none', borderRadius: '50%', width: '32px', height: '32px', fontSize: '16px', color: '#6B7280', cursor: 'pointer' }}
