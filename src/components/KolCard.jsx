@@ -58,7 +58,7 @@ const igUrl = (handle) => {
   return h ? `https://www.instagram.com/${h}` : null
 }
 
-export default function KolCard({ influencer: inf, onStatusChange }) {
+export default function KolCard({ influencer: inf, onStatusChange, onReplyMark }) {
   const [showDetail, setShowDetail]       = useState(false)
   const [imgError, setImgError]           = useState(false)
   const [detailImgError, setDetailImgError] = useState(false)
@@ -71,6 +71,14 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
     await supabase.from('influencers').update({ status: newStatus }).eq('id', inf.id)
     setStatusUpdating(false)
     if (onStatusChange) onStatusChange(newStatus)
+  }
+
+  const markReplied = async () => {
+    const { error } = await supabase.from('influencers').update({ status: '洽談中' }).eq('id', inf.id)
+    if (!error) {
+      if (onStatusChange) onStatusChange('洽談中')
+      if (onReplyMark) onReplyMark(inf.name)
+    }
   }
 
   const score     = calcScore(inf)
@@ -94,7 +102,8 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
         }}
       >
         {/* Photo */}
-        <div style={{ position: 'relative', paddingTop: '80%', background: '#F3F4F6' }}>
+        <div style={{ position: 'relative', paddingTop: '80%', background: '#F3F4F6',
+            ...(inf.status === '洽談中' ? { outline: '3px solid #7C3AED', outlineOffset: '2px', animation: 'kolPulse 1.8s ease-in-out infinite' } : {}) }}>
           {inf.photo_url && !imgError ? (
             <img
               src={inf.photo_url} alt={inf.name}
@@ -119,6 +128,7 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
           <span style={{ position: 'absolute', bottom: 10, left: 10, background: 'rgba(0,0,0,0.65)', color: 'white', fontSize: '12px', fontWeight: 700, padding: '3px 9px', borderRadius: '20px', backdropFilter: 'blur(4px)' }}>
             ★ {score}
           </span>
+          {inf.status === '洽談中' && <span style={{ position: 'absolute', bottom: 8, right: 8, width: 14, height: 14, borderRadius: '50%', background: '#7C3AED', border: '2px solid white', zIndex: 3 }} />}
           {/* Platform badges */}
           {platforms.length > 0 && (
             <div style={{ position: 'absolute', bottom: 10, right: 10, display: 'flex', gap: '4px' }}>
@@ -238,7 +248,14 @@ export default function KolCard({ influencer: inf, onStatusChange }) {
                   ✅ 已核准
                 </div>
               )}
-              <button
+              {inf.status === '已寄信' && (
+                <button
+                  onClick={e => { e.stopPropagation(); markReplied() }}
+                  style={{ flex: 1, padding: '7px 0', borderRadius: '8px', background: '#EDE9FE', color: '#6D28D9', fontWeight: 700, border: 'none', cursor: 'pointer', fontSize: '13px' }}>
+                  📩 收到回覆
+                </button>
+              )}
+               <button
                 onClick={e => handleStatusUpdate(e, '已取消')}
                 disabled={statusUpdating}
                 style={{
